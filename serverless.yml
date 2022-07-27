@@ -1,0 +1,86 @@
+service: dynamodb-crud-api
+
+provider:
+  name: aws
+  runtime: nodejs12.x
+  environment:
+    DYNAMO_TABLE_NAME: RulesTable
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - dynamodb:Query
+        - dynamodb:Scan
+        - dynamodb:GetItem
+        - dynamodb:PutItem
+        - dynamodb:UpdateItem
+        - dynamodb:DeleteItem
+      Resource: "*"
+
+functions:
+  listRules:
+    handler: Rules/list.listRules
+    events:
+      - http:
+          path: rules
+          method: get
+          cors: true
+
+  createRule:
+    handler: Rules/create.createRules
+    events:
+      - http:
+          path: rules
+          method: post
+          cors: true
+
+  getRule:
+    handler: Rules/get.getRule
+    events:
+      - http:
+          path: rules/{id}
+          method: get
+          cors: true
+
+  updateRule:
+    handler: Rules/update.updateRule
+    events:
+      - http:
+          path: rules/{id}
+          method: put
+          cors: true
+
+
+  updateRuleState:
+    handler: Rules/updateState.updateRuleState
+    events:
+      - http:
+          path: rules/state/{id}
+          method: put
+          cors: true
+
+  deleteRule:
+    handler: Rules/delete.deleteRules
+    events:
+      - http:
+          path: rules/{id}
+          method: delete
+          cors: true
+  
+ 
+
+resources:
+  Resources:
+    UsersDynamoDbTable:
+      Type: AWS::DynamoDB::Table
+      DeletionPolicy: Retain
+      Properties:
+        AttributeDefinitions:
+          - AttributeName: id
+            AttributeType: S
+        KeySchema:
+          - AttributeName: id
+            KeyType: HASH
+        ProvisionedThroughput:
+          ReadCapacityUnits: 6
+          WriteCapacityUnits: 6
+        TableName: ${self:provider.environment.DYNAMO_TABLE_NAME}
